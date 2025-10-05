@@ -1,5 +1,4 @@
-﻿using System.Net.Mime;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 
 namespace ClearTreasury.GadgetManagement.Api.Controllers;
 
