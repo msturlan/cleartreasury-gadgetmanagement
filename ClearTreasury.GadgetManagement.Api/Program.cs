@@ -1,4 +1,6 @@
 using ClearTreasury.GadgetManagement.Api.Data;
+using ClearTreasury.GadgetManagement.Api.Extensions;
+using ClearTreasury.GadgetManagement.Api.Infrastructure;
 using ClearTreasury.GadgetManagement.Api.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -6,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddBoundValidatedOptions<JwtAuthOptions>("JwtAuth");
 
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
