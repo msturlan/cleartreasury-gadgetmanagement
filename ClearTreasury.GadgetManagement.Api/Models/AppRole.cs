@@ -4,5 +4,11 @@ namespace ClearTreasury.GadgetManagement.Api.Models;
 
 public class AppRole : IdentityRole
 {
-    public string Description { get; set; } = String.Empty;
+    public AppRole() : base()
+    {
+    }
+
+    public AppRole(string roleName) : base(roleName)
+    {
+    }
 }
