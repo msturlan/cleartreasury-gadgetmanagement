@@ -1,5 +1,6 @@
 using ClearTreasury.GadgetManagement.Api.Data;
 using ClearTreasury.GadgetManagement.Api.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,7 +19,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
             .GetResult());
 });
 
-builder.Services.AddIdentity<AppUser, AppRole>()
+builder.Services.AddIdentity<AppUser, IdentityRole>()
     .AddEntityFrameworkStores<AppDbContext>();
 
 builder.Services.AddControllers();

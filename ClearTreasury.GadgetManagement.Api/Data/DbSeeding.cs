@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using ClearTreasury.GadgetManagement.Api.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace ClearTreasury.GadgetManagement.Api.Data;
@@ -22,12 +23,12 @@ public static class DbSeeding
                 continue;
             }
 
-            var role = await context.Set<AppRole>()
+            var role = await context.Set<IdentityRole>()
                 .FirstOrDefaultAsync(x => x.Name == name, ct);
 
             if (role is null)
             {
-                context.Set<AppRole>().Add(new AppRole(name));
+                context.Set<IdentityRole>().Add(new IdentityRole(name));
             }
         }
 

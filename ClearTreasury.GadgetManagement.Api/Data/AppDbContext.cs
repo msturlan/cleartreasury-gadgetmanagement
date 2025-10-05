@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ClearTreasury.GadgetManagement.Api.Data;
 
-public class AppDbContext : IdentityDbContext<AppUser, AppRole, string>
+public class AppDbContext : IdentityDbContext<AppUser>
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
