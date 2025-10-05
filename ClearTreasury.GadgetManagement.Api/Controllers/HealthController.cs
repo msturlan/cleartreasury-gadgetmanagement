@@ -2,9 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ClearTreasury.GadgetManagement.Api.Controllers
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class HealthController : ControllerBase
+    public class HealthController : AppBaseController
     {
         [HttpGet]
         public IActionResult Get()
