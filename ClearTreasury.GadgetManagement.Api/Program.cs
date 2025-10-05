@@ -8,7 +8,14 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    options.UseSqlServer(builder.Configuration.GetConnectionString("AppMainDb"));
+    options
+        .UseSqlServer(builder.Configuration.GetConnectionString("AppMainDb"))
+        .UseAsyncSeeding(async (ctx, flag, ct) => await DbSeeding
+            .SeedAsync(ctx, flag, builder.Environment.IsProduction(), ct))
+        .UseSeeding((ctx, flag) => DbSeeding
+            .SeedAsync(ctx, flag, builder.Environment.IsProduction(), CancellationToken.None)
+            .GetAwaiter()
+            .GetResult());
 });
 
 builder.Services.AddIdentity<AppUser, AppRole>()
@@ -19,6 +26,12 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
+
+await using (var svcScope = app.Services.CreateAsyncScope())
+{
+    var dbContext = svcScope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await dbContext.Database.EnsureCreatedAsync();
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
