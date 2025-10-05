@@ -1,14 +1,14 @@
 ﻿using System.Reflection;
 using ClearTreasury.GadgetManagement.Api.Models;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 
 namespace ClearTreasury.GadgetManagement.Api.Data;
 
 public static class DbSeeding
 {
-    public static async Task SeedAsync(DbContext context,
-        bool storeMgmtOperation, bool infrastructureDataOnly, CancellationToken ct)
+    public static async Task SeedAsync(
+        UserManager<AppUser> userManager,
+        RoleManager<IdentityRole> roleManager)
     {
         var roleNames = typeof(AppStaticRoles)
             .GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy)
@@ -23,20 +23,37 @@ public static class DbSeeding
                 continue;
             }
 
-            var role = await context.Set<IdentityRole>()
-                .FirstOrDefaultAsync(x => x.Name == name, ct);
-
-            if (role is null)
+            if (!await roleManager.RoleExistsAsync(name))
             {
-                context.Set<IdentityRole>().Add(new IdentityRole(name));
+                await roleManager.CreateAsync(new IdentityRole(name));
             }
         }
 
-        await context.SaveChangesAsync(ct);
-
-        if (!infrastructureDataOnly)
+        var user = new AppUser()
         {
-            // generate demo users here
+            UserName = "user@ct.com",
+            Email = "user@ct.com",
+            EmailConfirmed = true,
+            LockoutEnabled = false
+        };
+        var manager = new AppUser()
+        {
+            UserName = "manager@ct.com",
+            Email = "manager@ct.com",
+            EmailConfirmed = true,
+            LockoutEnabled = false
+        };
+        
+        userManager.PasswordValidators.Clear();
+        if (await userManager.FindByEmailAsync(user.Email) is null)
+        {
+            await userManager.CreateAsync(user, "user");
+            await userManager.AddToRoleAsync(user, AppStaticRoles.User);
+        }
+        if (await userManager.FindByEmailAsync(manager.Email) is null)
+        {
+            await userManager.CreateAsync(manager, "manager");
+            await userManager.AddToRoleAsync(manager, AppStaticRoles.Manager);
         }
     }
 }

@@ -9,14 +9,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    options
-        .UseSqlServer(builder.Configuration.GetConnectionString("AppMainDb"))
-        .UseAsyncSeeding(async (ctx, flag, ct) => await DbSeeding
-            .SeedAsync(ctx, flag, builder.Environment.IsProduction(), ct))
-        .UseSeeding((ctx, flag) => DbSeeding
-            .SeedAsync(ctx, flag, builder.Environment.IsProduction(), CancellationToken.None)
-            .GetAwaiter()
-            .GetResult());
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("AppMainDb"));
 });
 
 builder.Services.AddIdentity<AppUser, IdentityRole>()
@@ -28,16 +22,19 @@ builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
-await using (var svcScope = app.Services.CreateAsyncScope())
-{
-    var dbContext = svcScope.ServiceProvider.GetRequiredService<AppDbContext>();
-    await dbContext.Database.EnsureCreatedAsync();
-}
-
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+
+    using var scope = app.Services.CreateScope();
+
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
+    await dbContext.Database.MigrateAsync();
+    await DbSeeding.SeedAsync(userManager, roleManager);
 }
 
 app.UseHttpsRedirection();
