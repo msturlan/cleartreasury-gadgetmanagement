@@ -35,4 +35,9 @@ public class Gadget : IEntityWithId<Guid>, IVersionedEntity
             DateModified = DateTime.UtcNow;
         }
     }
+
+    public void SetCategories(IEnumerable<Category> categories)
+    {
+        _categories.AddRange(categories);
+    }
 }
