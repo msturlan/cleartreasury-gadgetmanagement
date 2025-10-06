@@ -3,4 +3,6 @@
 public static class DbSchemas
 {
     public const string Identity = "identity";
+
+    public const string Inventory = "inventory";
 }

@@ -15,5 +15,6 @@ public class AppDbContext : IdentityDbContext<AppUser>
         base.OnModelCreating(builder);
 
         builder.HasDefaultSchema(DbSchemas.Identity);
+        builder.ApplyConfigurationsFromAssembly(GetType().Assembly);
     }
 }
