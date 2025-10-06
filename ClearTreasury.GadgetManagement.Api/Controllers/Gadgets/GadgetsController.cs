@@ -79,7 +79,7 @@ public class GadgetsController(AppDbContext dbContext)
 
         if (nameTaken)
         {
-            return CreateConflictProblem($"The name '{dto.Name}' is already taken.");
+            return ConflictProblem($"The name '{dto.Name}' is already taken.");
         }
 
         var entity = new Gadget(dto.Name, dto.Quantity);
@@ -127,15 +127,7 @@ public class GadgetsController(AppDbContext dbContext)
             entity.DecreaseStock();
         }
 
-        try
-        {
-            await dbContext.SaveChangesAsync(AbortToken);
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            return CreatePreconditionFailedProblem();
-        }
-
+        await dbContext.SaveChangesAsync(AbortToken);
         return NoContent();
     }
 
@@ -164,7 +156,7 @@ public class GadgetsController(AppDbContext dbContext)
 
             if (nameTaken)
             {
-                return CreateConflictProblem($"The name '{dto.Name}' is already taken.");
+                return ConflictProblem($"The name '{dto.Name}' is already taken.");
             }
         }
 
@@ -177,15 +169,7 @@ public class GadgetsController(AppDbContext dbContext)
 
         entity.UpdateCategories(categories);
 
-        try
-        {
-            await dbContext.SaveChangesAsync(AbortToken);
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            return CreatePreconditionFailedProblem();
-        }
-
+        await dbContext.SaveChangesAsync(AbortToken);
         return NoContent();
     }
 
@@ -252,15 +236,7 @@ public class GadgetsController(AppDbContext dbContext)
         dbContext.SetOriginalRowVersion(entity, version);
         dbContext.Remove(entity);
 
-        try
-        {
-            await dbContext.SaveChangesAsync(AbortToken);
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            return CreatePreconditionFailedProblem();
-        }
-
+        await dbContext.SaveChangesAsync(AbortToken);
         return NoContent();
     }
 

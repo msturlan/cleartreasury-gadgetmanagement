@@ -10,6 +10,9 @@ using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddProblemDetails();
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+
 // Add services to the container.
 builder.Services.AddBoundValidatedOptions<JwtAuthOptions>("JwtAuth");
 
@@ -57,6 +60,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseExceptionHandler();
 
 app.UseAuthentication();
 app.UseAuthorization();
