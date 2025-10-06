@@ -1,5 +1,4 @@
 ﻿using System.Security.Claims;
-using System.Text;
 using ClearTreasury.GadgetManagement.Api.Infrastructure;
 using ClearTreasury.GadgetManagement.Api.Models;
 using Microsoft.AspNetCore.Identity;
@@ -29,9 +28,7 @@ public class LoginController(
 
         var roles = await userManager.GetRolesAsync(user);
 
-        var signingKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(jwtOptions.Value.SecretKey));
-
+        var signingKey = new SymmetricSecurityKey(jwtOptions.Value.GetSecretKeyBytes());
         var credentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);
 
         Claim[] claims =

@@ -2,11 +2,13 @@
 using ClearTreasury.GadgetManagement.Api.Dtos;
 using ClearTreasury.GadgetManagement.Api.Infrastructure;
 using ClearTreasury.GadgetManagement.Api.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace ClearTreasury.GadgetManagement.Api.Controllers.Gadgets;
 
+[Authorize(AuthPolicies.CanViewGadgets)]
 public class GadgetsController(AppDbContext dbContext)
     : AppBaseController
 {
@@ -68,6 +70,7 @@ public class GadgetsController(AppDbContext dbContext)
     }
 
     [HttpPost]
+    [Authorize(AuthPolicies.CanManageGadgets)]
     public async Task<ActionResult> Create([FromBody] GadgetSubmitDto dto)
     {
         var nameTaken = await dbContext
@@ -99,6 +102,7 @@ public class GadgetsController(AppDbContext dbContext)
     }
 
     [HttpPatch("{id}")]
+    [Authorize(AuthPolicies.CanManageGadgets)]
     public async Task<ActionResult> IncreaseStock(Guid id,
         [FromIfMatchHeader] byte[] etag, [FromQuery] bool increase)
     {
@@ -136,6 +140,7 @@ public class GadgetsController(AppDbContext dbContext)
     }
 
     [HttpPut("{id}")]
+    [Authorize(AuthPolicies.CanManageGadgets)]
     public async Task<ActionResult> Update(Guid id,
         [FromIfMatchHeader] byte[] etag, [FromBody] GadgetSubmitDto dto)
     {
@@ -185,6 +190,7 @@ public class GadgetsController(AppDbContext dbContext)
     }
 
     [HttpDelete]
+    [Authorize(AuthPolicies.CanManageGadgets)]
     public async Task<ActionResult> Delete([FromBody] GadgetIdTagDto[] idDtos)
     {
         var results = new List<GadgetDeleteResultDto>();
@@ -230,6 +236,7 @@ public class GadgetsController(AppDbContext dbContext)
     }
 
     [HttpDelete("{id}")]
+    [Authorize(AuthPolicies.CanManageGadgets)]
     public async Task<ActionResult> Delete(Guid id, [FromIfMatchHeader] byte[] version)
     {
         var entity = await dbContext

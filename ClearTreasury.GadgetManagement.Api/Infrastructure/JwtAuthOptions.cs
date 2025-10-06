@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text;
 
 namespace ClearTreasury.GadgetManagement.Api.Infrastructure;
 
@@ -15,4 +16,6 @@ public record JwtAuthOptions
 
     [Range(1, 1440)]
     public int ExpiresInMins { get; set; }
+
+    public byte[] GetSecretKeyBytes() => Encoding.UTF8.GetBytes(SecretKey);
 }
