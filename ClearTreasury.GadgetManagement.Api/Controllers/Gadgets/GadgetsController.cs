@@ -144,6 +144,51 @@ public class GadgetsController(AppDbContext dbContext)
         return NoContent();
     }
 
+    [HttpDelete]
+    public async Task<ActionResult> Delete([FromBody] GadgetIdTagDto[] idDtos)
+    {
+        var results = new List<GadgetDeleteResultDto>();
+        var idsToFetch = idDtos.Select(x => x.Id).ToArray();
+
+        var entities = await dbContext
+            .Set<Gadget>()
+            .Where(x => idsToFetch.Contains(x.Id))
+            .ToDictionaryAsync(x => x.Id, x => x, AbortToken);
+
+        foreach (var dto in idDtos)
+        {
+            GadgetDeleteResultDto result;
+
+            if (entities.TryGetValue(dto.Id, out var currentEntity))
+            {
+                dbContext.SetOriginalRowVersion(currentEntity, dto.ETag);
+                dbContext.Remove(currentEntity);
+
+                try
+                {
+                    await dbContext.SaveChangesAsync(AbortToken);
+                    result = GadgetDeleteResultDto.Ok(dto.Id);
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    result = GadgetDeleteResultDto.Fail(dto.Id, "ETag mismatch");
+                }
+                catch
+                {
+                    result = GadgetDeleteResultDto.Fail(dto.Id, "Unexpected error");
+                }
+            }
+            else
+            {
+                result = GadgetDeleteResultDto.Fail(dto.Id, "Not found");
+            }
+
+            results.Add(result);
+        }
+
+        return Ok(results);
+    }
+
     [HttpDelete("{id}")]
     public async Task<ActionResult> Delete(Guid id, [FromIfMatchHeader] byte[] version)
     {
