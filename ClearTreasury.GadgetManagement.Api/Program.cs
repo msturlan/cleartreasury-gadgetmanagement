@@ -31,13 +31,7 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 
     using var scope = app.Services.CreateScope();
-
-    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
-    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-
-    await dbContext.Database.MigrateAsync();
-    await DbSeeding.SeedAsync(userManager, roleManager);
+    await DbSeeding.MigrateAndSeed(scope.ServiceProvider);
 }
 
 app.UseHttpsRedirection();

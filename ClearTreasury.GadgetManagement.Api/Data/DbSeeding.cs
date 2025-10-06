@@ -1,34 +1,37 @@
-﻿using System.Reflection;
+﻿using ClearTreasury.GadgetManagement.Api.Extensions;
 using ClearTreasury.GadgetManagement.Api.Models;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace ClearTreasury.GadgetManagement.Api.Data;
 
 public static class DbSeeding
 {
-    public static async Task SeedAsync(
-        UserManager<AppUser> userManager,
-        RoleManager<IdentityRole> roleManager)
+    public static async Task MigrateAndSeed(IServiceProvider serviceProvider)
     {
-        var roleNames = typeof(AppStaticRoles)
-            .GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy)
-            .Where(x => x.IsLiteral && !x.IsInitOnly)
-            .Select(x => x.GetValue(default) as string)
-            .ToArray();
+        var dbContext = serviceProvider.GetRequiredService<AppDbContext>();
+        
+        await dbContext.Database.MigrateAsync();
+        await SeedCategories(dbContext);
+        await SeedRoles(serviceProvider.GetRequiredService<RoleManager<IdentityRole>>());
+        await SeedUsers(serviceProvider.GetRequiredService<UserManager<AppUser>>());
+    }
+
+    private static async Task SeedRoles(RoleManager<IdentityRole> roleManager)
+    {
+        var roleNames = typeof(AppStaticRoles).GetNonEmptyStringConsts();
 
         foreach (var name in roleNames)
         {
-            if (String.IsNullOrWhiteSpace(name))
-            {
-                continue;
-            }
-
             if (!await roleManager.RoleExistsAsync(name))
             {
                 await roleManager.CreateAsync(new IdentityRole(name));
             }
         }
+    }
 
+    private static async Task SeedUsers(UserManager<AppUser> userManager)
+    {
         var user = new AppUser()
         {
             UserName = "user@ct.com",
@@ -43,7 +46,7 @@ public static class DbSeeding
             EmailConfirmed = true,
             LockoutEnabled = false
         };
-        
+
         userManager.PasswordValidators.Clear();
         if (await userManager.FindByEmailAsync(user.Email) is null)
         {
@@ -55,5 +58,20 @@ public static class DbSeeding
             await userManager.CreateAsync(manager, "manager");
             await userManager.AddToRoleAsync(manager, AppStaticRoles.Manager);
         }
+    }
+
+    private static async Task SeedCategories(DbContext dbContext)
+    {
+        var categorySet = dbContext.Set<Category>();
+
+        foreach (var name in typeof(CategoryNames).GetNonEmptyStringConsts())
+        {
+            if (!await categorySet.AnyAsync(x => x.Name == name))
+            {
+                categorySet.Add(new Category(name));
+            }
+        }
+
+        await dbContext.SaveChangesAsync();
     }
 }
