@@ -1,4 +1,5 @@
 ﻿using ClearTreasury.GadgetManagement.Api.Data;
+using ClearTreasury.GadgetManagement.Api.Dtos;
 using ClearTreasury.GadgetManagement.Api.Infrastructure;
 using ClearTreasury.GadgetManagement.Api.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -9,6 +10,44 @@ namespace ClearTreasury.GadgetManagement.Api.Controllers.Gadgets;
 public class GadgetsController(AppDbContext dbContext)
     : AppBaseController
 {
+    [HttpGet]
+    public async Task<ActionResult> Get([FromQuery] GadgetSearchDto dto)
+    {
+        var query = dbContext
+            .Set<Gadget>()
+            .AsNoTracking();
+
+        if (!String.IsNullOrWhiteSpace(dto.NameFilter))
+        {
+            query = query.Where(x => EF.Functions.Contains(x.Name, $"\"{dto.NameFilter}*\""));
+        }
+        if (dto.DateFromFilter.HasValue)
+        {
+            query = query.Where(x => x.DateCreated >= dto.DateFromFilter.Value);
+        }
+        if (dto.DateToFilter.HasValue)
+        {
+            query = query.Where(x => x.DateCreated <= dto.DateToFilter.Value);
+        }
+
+        var count = await query.CountAsync(AbortToken);
+
+        var finalQuery = query
+            .Include(x => x.Categories)
+            .Skip(dto.PageSize * dto.PageIndex)
+            .Take(dto.PageSize);
+
+        var pageDto = new PageDto<GadgetDto>(count);
+
+        await foreach(var item in finalQuery.AsAsyncEnumerable())
+        {
+            AbortToken.ThrowIfCancellationRequested();
+            pageDto.Add(Map(item));
+        }
+        
+        return Ok(pageDto);
+    }
+
     [HttpGet("{id}", Name = "GetGadgetById")]
     public async Task<ActionResult> Get(Guid id)
     {
@@ -28,7 +67,7 @@ public class GadgetsController(AppDbContext dbContext)
     }
 
     [HttpPost]
-    public async Task<ActionResult> Create([FromBody]GadgetSubmitDto dto)
+    public async Task<ActionResult> Create([FromBody] GadgetSubmitDto dto)
     {
         var nameTaken = await dbContext
             .Set<Gadget>()
@@ -97,7 +136,7 @@ public class GadgetsController(AppDbContext dbContext)
 
     [HttpPut("{id}")]
     public async Task<ActionResult> Update(Guid id,
-        [FromIfMatchHeader] byte[] etag, [FromBody]GadgetSubmitDto dto)
+        [FromIfMatchHeader] byte[] etag, [FromBody] GadgetSubmitDto dto)
     {
         var entity = await dbContext
             .Set<Gadget>()
