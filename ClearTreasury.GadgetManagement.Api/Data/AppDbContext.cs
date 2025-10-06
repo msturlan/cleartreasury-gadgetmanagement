@@ -10,6 +10,12 @@ public class AppDbContext : IdentityDbContext<AppUser>
     {
     }
 
+    public void SetOriginalRowVersion<T>(T entity, byte[] rowVersion)
+        where T : class, IVersionedEntity
+    {
+        Entry(entity).Property(x => x.RowVersion).OriginalValue = rowVersion;
+    }
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);

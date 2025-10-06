@@ -1,4 +1,5 @@
 ﻿using ClearTreasury.GadgetManagement.Api.Data;
+using ClearTreasury.GadgetManagement.Api.Infrastructure;
 using ClearTreasury.GadgetManagement.Api.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -14,6 +15,7 @@ public class GadgetsController(AppDbContext dbContext)
         var entity = await dbContext
             .Set<Gadget>()
             .Include(x => x.Categories)
+            .AsNoTracking()
             .FirstOrDefaultAsync(x => x.Id == id, AbortToken);
 
         if (entity is null)
@@ -26,25 +28,25 @@ public class GadgetsController(AppDbContext dbContext)
     }
 
     [HttpPost]
-    public async Task<ActionResult> Create([FromBody]CreateGadgetRequest request)
+    public async Task<ActionResult> Create([FromBody]GadgetSubmitDto dto)
     {
         var nameTaken = await dbContext
             .Set<Gadget>()
-            .AnyAsync(x => x.Name == request.Name, AbortToken);
+            .AnyAsync(x => x.Name == dto.Name, AbortToken);
 
         if (nameTaken)
         {
-            return CreateProblem(StatusCodes.Status409Conflict);
+            return CreateConflictProblem($"The name '{dto.Name}' is already taken.");
         }
 
-        var entity = new Gadget(request.Name, request.Quantity);
+        var entity = new Gadget(dto.Name, dto.Quantity);
 
         dbContext.Add(entity);
         await dbContext.SaveChangesAsync(AbortToken);
 
         var categories = await dbContext
             .Set<Category>()
-            .Where(x => request.CategoryIds.Contains(x.Id))
+            .Where(x => dto.CategoryIds.Contains(x.Id))
             .ToArrayAsync(AbortToken);
 
         entity.SetCategories(categories);
@@ -54,6 +56,82 @@ public class GadgetsController(AppDbContext dbContext)
         var uri = Url.Link("GetGadgetById", new { id = entity.Id });
 
         return Created(uri, details);
+    }
+
+    [HttpPut("{id}")]
+    public async Task<ActionResult> Update(Guid id, [FromIfMatchHeader] byte[] etag, [FromBody]GadgetSubmitDto dto)
+    {
+        var entity = await dbContext
+            .Set<Gadget>()
+            .Include(x => x.Categories)
+            .FirstOrDefaultAsync(x => x.Id == id, AbortToken);
+
+        if (entity is null)
+        {
+            return NotFound();
+        }
+
+        dbContext.SetOriginalRowVersion(entity, etag);
+
+        if (dto.Name != entity.Name)
+        {
+            var nameTaken = await dbContext
+                .Set<Gadget>()
+                .AnyAsync(x => x.Name == dto.Name && x.Id != id, AbortToken);
+
+            if (nameTaken)
+            {
+                return CreateConflictProblem($"The name '{dto.Name}' is already taken.");
+            }
+        }
+
+        entity.Update(dto.Name, dto.Quantity);
+
+        var categories = await dbContext
+            .Set<Category>()
+            .Where(x => dto.CategoryIds.Contains(x.Id))
+            .ToArrayAsync(AbortToken);
+
+        entity.UpdateCategories(categories);
+
+        try
+        {
+            await dbContext.SaveChangesAsync(AbortToken);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            return CreatePreconditionFailedProblem();
+        }
+
+        return NoContent();
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<ActionResult> Delete(Guid id, [FromIfMatchHeader] byte[] version)
+    {
+        var entity = await dbContext
+            .Set<Gadget>()
+            .Include(x => x.Categories)
+            .FirstOrDefaultAsync(x => x.Id == id, AbortToken);
+
+        if (entity is null)
+        {
+            return NotFound();
+        }
+
+        dbContext.SetOriginalRowVersion(entity, version);
+        dbContext.Remove(entity);
+
+        try
+        {
+            await dbContext.SaveChangesAsync(AbortToken);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            return CreatePreconditionFailedProblem();
+        }
+
+        return NoContent();
     }
 
     private GadgetDto Map(Gadget entity)

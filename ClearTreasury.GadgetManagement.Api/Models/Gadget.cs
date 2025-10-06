@@ -20,7 +20,7 @@ public class Gadget : IEntityWithId<Guid>, IVersionedEntity
 
     public DateTime DateCreated { get; private set; }
 
-    public DateTime DateModified { get; private set; }
+    public DateTime? DateModified { get; private set; }
 
     public byte[] RowVersion { get; private set; }
 
@@ -32,12 +32,53 @@ public class Gadget : IEntityWithId<Guid>, IVersionedEntity
         {
             Name = Guard.NotNullOrWhitespace(name);
             Quantity = quantity;
-            DateModified = DateTime.UtcNow;
+            MarkAsUpdated();
         }
     }
 
-    public void SetCategories(IEnumerable<Category> categories)
+    public void SetCategories(Category[] categories)
     {
         _categories.AddRange(categories);
+    }
+
+    public void UpdateCategories(Category[] categories)
+    {
+        var categoriesToAdd = new List<Category>();
+        var categoriesToRemove = new List<Category>();
+
+        foreach (var pendingCategory in categories)
+        {
+            if (Categories.Any(x => x.Id == pendingCategory.Id))
+            {
+                continue;
+            }
+
+            categoriesToAdd.Add(pendingCategory);
+        }
+
+        foreach (var currentCategory in Categories)
+        {
+            if (!categories.Any(x => x.Id == currentCategory.Id))
+            {
+                categoriesToRemove.Add(currentCategory);
+            }
+        }
+
+        foreach (var c in categoriesToRemove)
+        {
+            _categories.Remove(c);
+        }
+
+        _categories.AddRange(categoriesToAdd);
+
+        if (categoriesToRemove.Count > 0 || categoriesToAdd.Count > 0)
+        {
+            MarkAsUpdated();
+        }
+    }
+
+    private void MarkAsUpdated()
+    {
+        DateModified = DateTime.UtcNow;
     }
 }

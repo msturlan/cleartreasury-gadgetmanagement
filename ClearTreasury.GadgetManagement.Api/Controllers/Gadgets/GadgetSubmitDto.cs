@@ -1,6 +1,6 @@
 ﻿namespace ClearTreasury.GadgetManagement.Api.Controllers.Gadgets;
 
-public record CreateGadgetRequest
+public record GadgetSubmitDto
 {
     public string Name { get; init; } = String.Empty;
 
