@@ -7,6 +7,8 @@ namespace ClearTreasury.GadgetManagement.Api.Data.Configurations;
 internal abstract class BaseEntityConfiguration<T> : IEntityTypeConfiguration<T>
     where T : class
 {
+    protected virtual bool AutoGenerateKeyValue => true;
+
     protected virtual string? Schema => DbSchemas.Inventory;
 
     protected virtual string? TableName => null;
@@ -35,8 +37,13 @@ internal abstract class BaseEntityConfiguration<T> : IEntityTypeConfiguration<T>
             builder.HasKey(keyPropName);
 
             builder.Property(keyPropName)
-                .ValueGeneratedOnAdd()
                 .HasColumnOrder(0);
+
+            if (AutoGenerateKeyValue)
+            {
+                builder.Property(keyPropName)
+                    .ValueGeneratedOnAdd();
+            }
         }
 
         if (typeof(IVersionedEntity).IsAssignableFrom(entityType))

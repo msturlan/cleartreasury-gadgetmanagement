@@ -2,6 +2,8 @@
 
 public class Gadget : IEntityWithId<Guid>, IVersionedEntity
 {
+    private readonly List<Category> _categories = [];
+
     public Gadget(string name, int quantity)
     {
         Name = name;
@@ -21,6 +23,8 @@ public class Gadget : IEntityWithId<Guid>, IVersionedEntity
     public DateTime DateModified { get; private set; }
 
     public byte[] RowVersion { get; private set; }
+
+    public IReadOnlyList<Category> Categories => _categories.AsReadOnly();
 
     public void Update(string name, int quantity)
     {
