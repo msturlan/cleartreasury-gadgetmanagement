@@ -10,7 +10,7 @@ public record GadgetDto
 
     public required DateTime DateCreated { get; set; }
 
-    public required DateTime DateModified { get; set; }
+    public required DateTime? DateModified { get; set; }
 
     public required byte[] RowVersion { get; set; }
 
