@@ -20,7 +20,7 @@ public class AppDbContext : IdentityDbContext<AppUser>
     public async Task<string> PrepareContainsTerm(string term, CancellationToken ct)
     {
         term = await Database
-            .SqlQueryRaw<string>("SELECT dbo.fn_Generate3grams({0}) AS value", term)
+            .SqlQueryRaw<string>($"SELECT {UserDbFunctions.Generate3Grams}({{0}}) AS value", term)
             .SingleAsync(ct);
 
         var items = term.Split(' ', StringSplitOptions.RemoveEmptyEntries);

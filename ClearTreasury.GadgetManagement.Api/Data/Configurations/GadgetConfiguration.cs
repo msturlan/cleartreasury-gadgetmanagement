@@ -15,7 +15,7 @@ internal class GadgetConfiguration : BaseEntityConfiguration<Gadget>
             .HasMaxLength(AppConstants.GadgetNameMaxLength);
 
         builder.Property(x => x.NameGrams)
-            .HasComputedColumnSql($"dbo.fn_Generate3grams({nameof(Gadget.Name)})", true)
+            .HasComputedColumnSql($"{UserDbFunctions.Generate3Grams}({nameof(Gadget.Name)})", true)
             .ValueGeneratedOnAddOrUpdate();
 
         builder

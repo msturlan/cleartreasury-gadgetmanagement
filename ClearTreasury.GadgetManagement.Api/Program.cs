@@ -1,4 +1,3 @@
-using System.Text.Json;
 using ClearTreasury.GadgetManagement.Api;
 using ClearTreasury.GadgetManagement.Api.Data;
 using ClearTreasury.GadgetManagement.Api.Extensions;
