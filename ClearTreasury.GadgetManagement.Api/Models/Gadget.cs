@@ -26,6 +26,21 @@ public class Gadget : IEntityWithId<Guid>, IVersionedEntity
 
     public IReadOnlyList<Category> Categories => _categories.AsReadOnly();
 
+    public void IncreaseStock()
+    {
+        Quantity++;
+        MarkAsUpdated();
+    }
+
+    public void DecreaseStock()
+    {
+        if (Quantity > 0)
+        {
+            Quantity--;
+            MarkAsUpdated();
+        }
+    }
+
     public void Update(string name, int quantity)
     {
         if (name != Name || quantity != Quantity)

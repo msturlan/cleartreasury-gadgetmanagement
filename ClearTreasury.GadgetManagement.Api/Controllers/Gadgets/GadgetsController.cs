@@ -58,8 +58,46 @@ public class GadgetsController(AppDbContext dbContext)
         return Created(uri, details);
     }
 
+    [HttpPatch("{id}")]
+    public async Task<ActionResult> IncreaseStock(Guid id,
+        [FromIfMatchHeader] byte[] etag, [FromQuery] bool increase)
+    {
+        var entity = await dbContext
+            .Set<Gadget>()
+            .Include(x => x.Categories)
+            .FirstOrDefaultAsync(x => x.Id == id, AbortToken);
+
+        if (entity is null)
+        {
+            return NotFound();
+        }
+
+        dbContext.SetOriginalRowVersion(entity, etag);
+
+        if (increase)
+        {
+            entity.IncreaseStock();
+        }
+        else
+        {
+            entity.DecreaseStock();
+        }
+
+        try
+        {
+            await dbContext.SaveChangesAsync(AbortToken);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            return CreatePreconditionFailedProblem();
+        }
+
+        return NoContent();
+    }
+
     [HttpPut("{id}")]
-    public async Task<ActionResult> Update(Guid id, [FromIfMatchHeader] byte[] etag, [FromBody]GadgetSubmitDto dto)
+    public async Task<ActionResult> Update(Guid id,
+        [FromIfMatchHeader] byte[] etag, [FromBody]GadgetSubmitDto dto)
     {
         var entity = await dbContext
             .Set<Gadget>()
