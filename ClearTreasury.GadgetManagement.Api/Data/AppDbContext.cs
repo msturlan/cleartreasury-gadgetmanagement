@@ -1,4 +1,5 @@
-﻿using ClearTreasury.GadgetManagement.Api.Models;
+﻿using System.Data;
+using ClearTreasury.GadgetManagement.Api.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,6 +15,16 @@ public class AppDbContext : IdentityDbContext<AppUser>
         where T : class, IVersionedEntity
     {
         Entry(entity).Property(x => x.RowVersion).OriginalValue = rowVersion;
+    }
+
+    public async Task<string> PrepareContainsTerm(string term, CancellationToken ct)
+    {
+        term = await Database
+            .SqlQueryRaw<string>("SELECT dbo.fn_Generate3grams({0}) AS value", term)
+            .SingleAsync(ct);
+
+        var items = term.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        return String.Join(" AND ", items.Select(x => $"\"{x}\""));
     }
 
     protected override void OnModelCreating(ModelBuilder builder)

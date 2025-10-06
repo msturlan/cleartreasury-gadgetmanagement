@@ -13,7 +13,11 @@ internal class GadgetConfiguration : BaseEntityConfiguration<Gadget>
         builder.Property(x => x.Name)
             .IsRequired()
             .HasMaxLength(AppConstants.GadgetNameMaxLength);
-        
+
+        builder.Property(x => x.NameGrams)
+            .HasComputedColumnSql($"dbo.fn_Generate3grams({nameof(Gadget.Name)})", true)
+            .ValueGeneratedOnAddOrUpdate();
+
         builder
             .Navigation(x => x.Categories)
             .UsePropertyAccessMode(PropertyAccessMode.Field);

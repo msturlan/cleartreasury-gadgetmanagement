@@ -24,6 +24,8 @@ public class Gadget : IEntityWithId<Guid>, IVersionedEntity
 
     public byte[] RowVersion { get; private set; }
 
+    public string NameGrams { get; private set; } = String.Empty;
+
     public IReadOnlyList<Category> Categories => _categories.AsReadOnly();
 
     public void IncreaseStock()

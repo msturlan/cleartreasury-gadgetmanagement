@@ -19,7 +19,8 @@ public class GadgetsController(AppDbContext dbContext)
 
         if (!String.IsNullOrWhiteSpace(dto.NameFilter))
         {
-            query = query.Where(x => EF.Functions.Contains(x.Name, $"\"{dto.NameFilter}*\""));
+            var term = await dbContext.PrepareContainsTerm(dto.NameFilter, AbortToken);
+            query = query.Where(x => EF.Functions.Contains(x.NameGrams, term));
         }
         if (dto.DateFromFilter.HasValue)
         {
