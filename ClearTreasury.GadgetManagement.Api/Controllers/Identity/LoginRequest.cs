@@ -1,3 +1,7 @@
-﻿namespace ClearTreasury.GadgetManagement.Api.Controllers.Identity;
+﻿using System.ComponentModel.DataAnnotations;
 
-public record LoginRequest(string Email, string Password);
+namespace ClearTreasury.GadgetManagement.Api.Controllers.Identity;
+
+public record LoginRequest(
+    [Required] string Email,
+    [Required] string Password);
