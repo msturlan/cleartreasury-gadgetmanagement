@@ -2,7 +2,9 @@
 
 public static class AppConstants
 {
-    public static int CategoryNameMaxLength => 64;
+    public const int CategoryNameMaxLength = 64;
 
-    public static int GadgetNameMaxLength => 64;
+    public const int GadgetNameMaxLength = 64;
+
+    public const int GadgetQuantityMax = Int32.MaxValue;
 }

@@ -1,3 +1,4 @@
+using System.Text.Json;
 using ClearTreasury.GadgetManagement.Api;
 using ClearTreasury.GadgetManagement.Api.Data;
 using ClearTreasury.GadgetManagement.Api.Extensions;
@@ -45,6 +46,7 @@ builder.Services.AddAuthorizationBuilder()
     .AddPolicy(AuthPolicies.CanViewGadgets, policy => policy.RequireRole(AppStaticRoles.User, AppStaticRoles.Manager));
 
 builder.Services.AddControllers();
+
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
