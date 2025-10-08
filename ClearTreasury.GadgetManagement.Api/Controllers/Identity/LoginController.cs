@@ -35,7 +35,8 @@ public class LoginController(
         [
             new Claim(JwtRegisteredClaimNames.Sub, user.Id),
             new Claim(JwtRegisteredClaimNames.Email, user.Email ?? String.Empty),
-            ..roles.Select(x => new Claim(ClaimTypes.Role, x))
+            new Claim(JwtRegisteredClaimNames.Name, user.FullName ?? String.Empty),
+            ..roles.Select(x => new Claim("role", x))
         ];
 
         var tokenDescriptor = new SecurityTokenDescriptor()

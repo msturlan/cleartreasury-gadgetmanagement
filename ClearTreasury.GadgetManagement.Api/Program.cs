@@ -14,6 +14,7 @@ builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
 // Add services to the container.
+builder.Services.AddBoundValidatedOptions<CorsConfigOptions>("Cors");
 builder.Services.AddBoundValidatedOptions<JwtAuthOptions>("JwtAuth");
 
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -25,6 +26,19 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddIdentity<AppUser, IdentityRole>()
     .AddEntityFrameworkStores<AppDbContext>();
 
+builder.Services.AddCors(options =>
+{
+    var corsOptions = builder.Configuration
+        .GetSection("Cors")
+        .Get<CorsConfigOptions>()!;
+
+    options.AddDefaultPolicy(b => b
+        .WithOrigins(corsOptions.Origins)
+        .AllowAnyMethod()
+        .AllowAnyHeader()
+        .AllowCredentials());
+});
+
 builder.Services
     .AddAuthentication(opts =>
     {
@@ -33,7 +47,9 @@ builder.Services
     })
     .AddJwtBearer(opts =>
     {
-        var jwtOptions = builder.Configuration.GetSection("JwtAuth").Get<JwtAuthOptions>()!;
+        var jwtOptions = builder.Configuration
+            .GetSection("JwtAuth")
+            .Get<JwtAuthOptions>()!;
 
         opts.TokenValidationParameters.ValidIssuer = jwtOptions.Issuer;
         opts.TokenValidationParameters.ValidAudience = jwtOptions.Audience;
@@ -60,9 +76,10 @@ if (app.Environment.IsDevelopment())
     await DbSeeding.MigrateAndSeed(scope.ServiceProvider);
 }
 
+app.UseExceptionHandler();
 app.UseHttpsRedirection();
 
-app.UseExceptionHandler();
+app.UseCors();
 
 app.UseAuthentication();
 app.UseAuthorization();

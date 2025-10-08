@@ -34,6 +34,7 @@ public static class DbSeeding
     {
         var user = new AppUser()
         {
+            FullName = "Cindy User",
             UserName = "user@ct.com",
             Email = "user@ct.com",
             EmailConfirmed = true,
@@ -41,6 +42,7 @@ public static class DbSeeding
         };
         var manager = new AppUser()
         {
+            FullName = "John Manager",
             UserName = "manager@ct.com",
             Email = "manager@ct.com",
             EmailConfirmed = true,
