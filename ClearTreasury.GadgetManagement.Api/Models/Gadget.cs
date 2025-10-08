@@ -16,7 +16,11 @@ public class Gadget : IEntityWithId<Guid>, IVersionedEntity
 
     public string Name { get; private set; }
 
-    public int Quantity { get; private set; }
+    public int Quantity
+    {
+        get;
+        private set => field = Guard.NonNegative(value);
+    }
 
     public DateTime DateCreated { get; private set; }
 
