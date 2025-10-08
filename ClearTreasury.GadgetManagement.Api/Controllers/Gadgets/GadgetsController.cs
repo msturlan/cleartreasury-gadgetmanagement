@@ -37,6 +37,7 @@ public class GadgetsController(AppDbContext dbContext)
 
         var finalQuery = query
             .Include(x => x.Categories)
+            .OrderBy(x => x.Name)
             .Skip(dto.PageSize * dto.PageIndex)
             .Take(dto.PageSize);
 
