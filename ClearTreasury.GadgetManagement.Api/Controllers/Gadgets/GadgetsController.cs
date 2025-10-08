@@ -93,6 +93,8 @@ public class GadgetsController(AppDbContext dbContext)
             .ToArrayAsync(AbortToken);
 
         entity.SetCategories(categories);
+
+        // TODO: handle name confict race condition
         await dbContext.SaveChangesAsync(AbortToken);
 
         var details = Map(entity);
@@ -169,6 +171,7 @@ public class GadgetsController(AppDbContext dbContext)
 
         entity.UpdateCategories(categories);
 
+        // TODO: handle name confict race condition
         await dbContext.SaveChangesAsync(AbortToken);
         return NoContent();
     }
