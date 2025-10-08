@@ -12,7 +12,10 @@ public static class DbSeeding
         var dbContext = serviceProvider.GetRequiredService<AppDbContext>();
         
         await dbContext.Database.MigrateAsync();
+        
         await SeedCategories(dbContext);
+        await SeedGadgets(dbContext);
+
         await SeedRoles(serviceProvider.GetRequiredService<RoleManager<IdentityRole>>());
         await SeedUsers(serviceProvider.GetRequiredService<UserManager<AppUser>>());
     }
@@ -72,6 +75,32 @@ public static class DbSeeding
             {
                 categorySet.Add(new Category(name));
             }
+        }
+
+        await dbContext.SaveChangesAsync();
+    }
+    
+    private static async Task SeedGadgets(DbContext dbContext)
+    {
+        var gadgetSet= dbContext.Set<Gadget>();
+
+        var categories = await dbContext
+            .Set<Category>()
+            .ToDictionaryAsync(x => x.Name, x => x);
+
+        var gadget1 = new Gadget("Samsung Galaxy S24", 5);
+        gadget1.SetCategories([categories[CategoryNames.Communication]]);
+
+        var gadget2 = new Gadget("Apple Watch III", 2);
+        gadget2.SetCategories([categories[CategoryNames.Wireless]]);
+
+        if (!await gadgetSet.AnyAsync(x => x.Name == gadget1.Name))
+        {
+            gadgetSet.Add(gadget1);
+        }
+        if (!await gadgetSet.AnyAsync(x => x.Name == gadget2.Name))
+        {
+            gadgetSet.Add(gadget2);
         }
 
         await dbContext.SaveChangesAsync();
